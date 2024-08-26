@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מחשבון דמי ניהול פנסיה</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            direction: rtl; /* ברירת מחדל: עברית */
+            transition: direction 0.3s ease;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .language-switcher {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .language-switcher a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 10px 15px;
+            font-size: 18px;
+        }
+        .language-switcher a.active {
+            font-weight: bold;
+            border-bottom: 2px solid #007bff;
+        }
+        .tabs {
+            display: flex;
+            cursor: pointer;
+            border-bottom: 2px solid #007bff;
+            margin-bottom: 20px;
+        }
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            background-color: #eeeeee;
+            border-radius: 5px 5px 0 0;
+            transition: background-color 0.3s;
+            border-right: 1px solid #ddd; /* גבול בין כרטיסיות */
+        }
+        .tab.active {
+            background-color: #ffffff;
+            font-weight: bold;
+            border-bottom: 2px solid #007bff;
+        }
+        .tab:last-child {
+            border-right: none; /* הסרת גבול מהכרטיסיה האחרונה */
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f0f8ff;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        .section label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, button {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin: 5px 0;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #charts {
+            width: 100%;
+            height: 400px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="language-switcher">
+            <a href="#" onclick="setLanguage('he'); return false;" id="lang-he">עברית</a>
+            <a href="#" onclick="setLanguage('en'); return false;" id="lang-en">English</a>
+        </div>
+        
+        <h1 id="title">מחשבון דמי ניהול פנסיה</h1>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="openTab(event, 'calc')" id="tab-calc">חשב דמי ניהול</div>
+        </div>
+        
+        <div id="calc" class="tab-content active">
+            <div class="section">
+                <h2 id="scenario1">תרחיש 1</h2>
+                <label for="adminFeeAcc1" id="label-adminFeeAcc1">דמי ניהול מצבירה (%):</label>
+                <input type="number" id="adminFeeAcc1" value="0">
+                
+                <label for="adminFeeDep1" id="label-adminFeeDep1">דמי ניהול מהפקדה (%):</label>
+                <input type="number" id="adminFeeDep1" value="2.0">
+            </div>
+            
+            <div class="section">
+                <h2 id="scenario2">תרחיש 2</h2>
+                <label for="adminFeeAcc2" id="label-adminFeeAcc2">דמי ניהול מצבירה (%):</label>
+                <input type="number" id="adminFeeAcc2" value="0.13">
+                
+                <label for="adminFeeDep2" id="label-adminFeeDep2">דמי ניהול מהפקדה (%):</label>
+                <input type="number" id="adminFeeDep2" value="0.9">
+            </div>
+            
+            <div class="section">
+                <h2 id="scenario3">תרחיש 3</h2>
+                <label for="adminFeeAcc3" id="label-adminFeeAcc3">דמי ניהול מצבירה (%):</label>
+                <input type="number" id="adminFeeAcc3" value="0">
+                
+                <label for="adminFeeDep3" id="label-adminFeeDep3">דמי ניהול מהפקדה (%):</label>
+                <input type="number" id="adminFeeDep3" value="0">
+            </div>
+            
+            <div class="section">
+                <label for="initialBalance" id="label-initialBalance">צבירה קיימת (₪):</label>
+                <input type="number" id="initialBalance" value="0">
+                
+                <label for="monthlyDeposit" id="label-monthlyDeposit">הפקדה חודשית (₪):</label>
+                <input type="number" id="monthlyDeposit" value="1000">
+                
+                <button onclick="calculateFees()" id="button-calculate">חשב דמי ניהול</button>
+            </div>
+            
+            <div id="charts">
+                <canvas id="feeChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let myChart;
+
+        function openTab(evt, tabId) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            contents.forEach(content => content.classList.remove('active'));
+            
+            evt.currentTarget.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function setLanguage(lang) {
+            const isHebrew = lang === 'he';
+            document.body.style.direction = isHebrew ? 'rtl' : 'ltr';
+            
+            document.getElementById('title').textContent = isHebrew ? 'מחשבון דמי ניהול פנסיה' : 'Pension Management Calculator';
+            
+            document.getElementById('tab-calc').textContent = isHebrew ? 'חשב דמי ניהול' : 'Calculate Fees';
+            
+            document.getElementById('scenario1').textContent = isHebrew ? 'תרחיש 1' : 'Scenario 1';
+            document.getElementById('label-adminFeeAcc1').textContent = isHebrew ? 'דמי ניהול מצבירה (%):' : 'Administration Fee on Balance (%):';
+            document.getElementById('label-adminFeeDep1').textContent = isHebrew ? 'דמי ניהול מהפקדה (%):' : 'Administration Fee on Deposit (%):';
+            
+            document.getElementById('scenario2').textContent = isHebrew ? 'תרחיש 2' : 'Scenario 2';
+            document.getElementById('label-adminFeeAcc2').textContent = isHebrew ? 'דמי ניהול מצבירה (%):' : 'Administration Fee on Balance (%):';
+            document.getElementById('label-adminFeeDep2').textContent = isHebrew ? 'דמי ניהול מהפקדה (%):' : 'Administration Fee on Deposit (%):';
+            
+            document.getElementById('scenario3').textContent = isHebrew ? 'תרחיש 3' : 'Scenario 3';
+            document.getElementById('label-adminFeeAcc3').textContent = isHebrew ? 'דמי ניהול מצבירה (%):' : 'Administration Fee on Balance (%):';
+            document.getElementById('label-adminFeeDep3').textContent = isHebrew ? 'דמי ניהול מהפקדה (%):' : 'Administration Fee on Deposit (%):';
+            
+            document.getElementById('label-initialBalance').textContent = isHebrew ? 'צבירה קיימת (₪):' : 'Current Balance (₪):';
+            document.getElementById('label-monthlyDeposit').textContent = isHebrew ? 'הפקדה חודשית (₪):' : 'Monthly Deposit (₪):';
+            document.getElementById('button-calculate').textContent = isHebrew ? 'חשב דמי ניהול' : 'Calculate Fees';
+            
+            if (myChart) {
+                myChart.options.scales.x.title.text = isHebrew ? 'שנה' : 'Year';
+                myChart.options.scales.y.title.text = isHebrew ? 'דמי ניהול (₪)' : 'Fees (₪)';
+                myChart.update();
+            }
+            
+            document.getElementById('lang-he').classList.toggle('active', isHebrew);
+            document.getElementById('lang-en').classList.toggle('active', !isHebrew);
+        }
+
+        function calculateFees() {
+            // Get inputs
+            const initialBalance = parseFloat(document.getElementById('initialBalance').value);
+            const monthlyDeposit = parseFloat(document.getElementById('monthlyDeposit').value);
+            const adminFeeAcc1 = parseFloat(document.getElementById('adminFeeAcc1').value) / 100;
+            const adminFeeDep1 = parseFloat(document.getElementById('adminFeeDep1').value) / 100;
+            const adminFeeAcc2 = parseFloat(document.getElementById('adminFeeAcc2').value) / 100;
+            const adminFeeDep2 = parseFloat(document.getElementById('adminFeeDep2').value) / 100;
+            const adminFeeAcc3 = parseFloat(document.getElementById('adminFeeAcc3').value) / 100;
+            const adminFeeDep3 = parseFloat(document.getElementById('adminFeeDep3').value) / 100;
+            
+            const years = 20;
+            const monthsPerYear = 12;
+            
+            // Initialize arrays for chart
+            let fees1 = [];
+            let fees2 = [];
+            let fees3 = [];
+            
+            let balance1 = initialBalance;
+            let balance2 = initialBalance;
+            let balance3 = initialBalance;
+            
+            for (let year = 1; year <= years; year++) {
+                let annualFee1 = balance1 * adminFeeAcc1 + monthlyDeposit * monthsPerYear * adminFeeDep1;
+                let annualFee2 = balance2 * adminFeeAcc2 + monthlyDeposit * monthsPerYear * adminFeeDep2;
+                let annualFee3 = balance3 * adminFeeAcc3 + monthlyDeposit * monthsPerYear * adminFeeDep3;
+                
+                fees1.push(annualFee1);
+                fees2.push(annualFee2);
+                fees3.push(annualFee3);
+                
+                balance1 = (balance1 + monthlyDeposit * monthsPerYear) * (1 - adminFeeAcc1);
+                balance2 = (balance2 + monthlyDeposit * monthsPerYear) * (1 - adminFeeAcc2);
+                balance3 = (balance3 + monthlyDeposit * monthsPerYear) * (1 - adminFeeAcc3);
+            }
+            
+            // Create the chart
+            const ctx = document.getElementById('feeChart').getContext('2d');
+            if (myChart) {
+                myChart.destroy();
+            }
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({ length: years }, (_, i) => i + 1),
+                    datasets: [
+                        {
+                            label: document.getElementById('scenario1').textContent,
+                            data: fees1,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            fill: true
+                        },
+                        {
+                            label: document.getElementById('scenario2').textContent,
+                            data: fees2,
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            fill: true
+                        },
+                        {
+                            label: document.getElementById('scenario3').textContent,
+                            data: fees3,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: document.getElementById('label-year')?.textContent || 'Year'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: document.getElementById('label-fee')?.textContent || 'Fees (₪)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
