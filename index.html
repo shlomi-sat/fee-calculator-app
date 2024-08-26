@@ -104,9 +104,36 @@
             height: 400px;
             margin-top: 20px;
         }
+        .whatsapp-button {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .whatsapp-button a {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #25D366;
+            color: #fff;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 18px;
+        }
+        .whatsapp-button a:hover {
+            background-color: #128C7E;
+        }
     </style>
 </head>
 <body>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-WLBMKHJGES"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-WLBMKHJGES');
+    </script>
+
     <div class="container">
         <div class="language-switcher">
             <a href="#" onclick="setLanguage('he'); return false;" id="lang-he">עברית</a>
@@ -160,6 +187,10 @@
             <div id="charts">
                 <canvas id="feeChart"></canvas>
             </div>
+            
+            <div class="whatsapp-button">
+                <a id="whatsapp-link" href="#">קשר עם תמיכה</a>
+            </div>
         </div>
     </div>
     
@@ -202,6 +233,10 @@
             document.getElementById('label-initialBalance').textContent = isHebrew ? 'צבירה קיימת (₪):' : 'Current Balance (₪):';
             document.getElementById('label-monthlyDeposit').textContent = isHebrew ? 'הפקדה חודשית (₪):' : 'Monthly Deposit (₪):';
             document.getElementById('button-calculate').textContent = isHebrew ? 'חשב דמי ניהול' : 'Calculate Fees';
+            
+            document.getElementById('whatsapp-link').href = isHebrew ? 
+                'https://wa.me/972502638644?text=' + encodeURIComponent('אני זקוק לעזרה עם המחשבון.') : 
+                'https://wa.me/972502638644?text=' + encodeURIComponent('I need help with the calculator.');
             
             if (myChart) {
                 myChart.options.scales.x.title.text = isHebrew ? 'שנה' : 'Year';
@@ -301,6 +336,9 @@
                 }
             });
         }
+
+        // Initialize with default language (Hebrew)
+        setLanguage('he');
     </script>
 </body>
 </html>
