@@ -12,6 +12,9 @@
             background-color: #f5f5f5;
             direction: rtl; /* ברירת מחדל: עברית */
             transition: direction 0.3s ease;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
         .container {
             max-width: 1000px;
@@ -20,7 +23,8 @@
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-            padding-bottom: 100px; /* מרווח נוסף בתחתית הדף */
+            padding-bottom: 450px; /* מרווח נוסף בתחתית הדף */
+            flex-grow: 1;
         }
         h1 {
             text-align: center;
@@ -102,12 +106,12 @@
         }
         #charts {
             width: 100%;
-            aspect-ratio: 1 / 1; /* יחס ריבועי */
+            height: 400px; /* גובה פרופורציוני לגרף */
             margin-top: 20px;
         }
         .whatsapp-button {
             position: fixed;
-            bottom: 20px;
+            bottom: 10px; /* הגדלת המרחק מהתחתית */
             right: 20px;
             z-index: 1000;
         }
@@ -123,6 +127,10 @@
         }
         .whatsapp-button a:hover {
             background-color: #128C7E;
+        }
+        #totalCosts {
+            margin-top: 20px;
+            padding-bottom: 100px; /* מרווח נוסף כדי לאפשר מרחק מהסוף */
         }
     </style>
 </head>
@@ -151,7 +159,7 @@
         
         <div id="calc" class="tab-content active">
             <div class="section">
-                <h2 id="scenario1">תרחיש 1</h2>
+                <h2 id="scenario1">הצעה 1</h2>
                 <label for="adminFeeAcc1" id="label-adminFeeAcc1">דמי ניהול מצבירה (%):</label>
                 <input type="number" id="adminFeeAcc1" value="0">
                 
@@ -160,21 +168,12 @@
             </div>
             
             <div class="section">
-                <h2 id="scenario2">תרחיש 2</h2>
+                <h2 id="scenario2">הצעה 2</h2>
                 <label for="adminFeeAcc2" id="label-adminFeeAcc2">דמי ניהול מצבירה (%):</label>
                 <input type="number" id="adminFeeAcc2" value="0.13">
                 
                 <label for="adminFeeDep2" id="label-adminFeeDep2">דמי ניהול מהפקדה (%):</label>
                 <input type="number" id="adminFeeDep2" value="0.9">
-            </div>
-            
-            <div class="section">
-                <h2 id="scenario3">תרחיש 3</h2>
-                <label for="adminFeeAcc3" id="label-adminFeeAcc3">דמי ניהול מצבירה (%):</label>
-                <input type="number" id="adminFeeAcc3" value="0">
-                
-                <label for="adminFeeDep3" id="label-adminFeeDep3">דמי ניהול מהפקדה (%):</label>
-                <input type="number" id="adminFeeDep3" value="0">
             </div>
             
             <div class="section">
@@ -189,6 +188,7 @@
             
             <div id="charts">
                 <canvas id="feeChart"></canvas>
+                <div id="totalCosts"></div> <!-- הוספת אלמנט להצגת סך ההוצאות -->
             </div>
             
             <div class="whatsapp-button">
@@ -221,17 +221,13 @@
             
             document.getElementById('tab-calc').textContent = isHebrew ? 'חשב דמי ניהול' : 'Calculate Fees';
             
-            document.getElementById('scenario1').textContent = isHebrew ? 'תרחיש 1' : 'Scenario 1';
+            document.getElementById('scenario1').textContent = isHebrew ? 'הצעה 1' : 'Proposal 1';
             document.getElementById('label-adminFeeAcc1').textContent = isHebrew ? 'דמי ניהול מצבירה (%):' : 'Administration Fee on Balance (%):';
             document.getElementById('label-adminFeeDep1').textContent = isHebrew ? 'דמי ניהול מהפקדה (%):' : 'Administration Fee on Deposit (%):';
             
-            document.getElementById('scenario2').textContent = isHebrew ? 'תרחיש 2' : 'Scenario 2';
+            document.getElementById('scenario2').textContent = isHebrew ? 'הצעה 2' : 'Proposal 2';
             document.getElementById('label-adminFeeAcc2').textContent = isHebrew ? 'דמי ניהול מצבירה (%):' : 'Administration Fee on Balance (%):';
             document.getElementById('label-adminFeeDep2').textContent = isHebrew ? 'דמי ניהול מהפקדה (%):' : 'Administration Fee on Deposit (%):';
-            
-            document.getElementById('scenario3').textContent = isHebrew ? 'תרחיש 3' : 'Scenario 3';
-            document.getElementById('label-adminFeeAcc3').textContent = isHebrew ? 'דמי ניהול מצבירה (%):' : 'Administration Fee on Balance (%):';
-            document.getElementById('label-adminFeeDep3').textContent = isHebrew ? 'דמי ניהול מהפקדה (%):' : 'Administration Fee on Deposit (%):';
             
             document.getElementById('label-initialBalance').textContent = isHebrew ? 'צבירה קיימת (₪):' : 'Current Balance (₪):';
             document.getElementById('label-monthlyDeposit').textContent = isHebrew ? 'הפקדה חודשית (₪):' : 'Monthly Deposit (₪):';
@@ -260,8 +256,6 @@
             const adminFeeDep1 = parseFloat(document.getElementById('adminFeeDep1').value) / 100;
             const adminFeeAcc2 = parseFloat(document.getElementById('adminFeeAcc2').value) / 100;
             const adminFeeDep2 = parseFloat(document.getElementById('adminFeeDep2').value) / 100;
-            const adminFeeAcc3 = parseFloat(document.getElementById('adminFeeAcc3').value) / 100;
-            const adminFeeDep3 = parseFloat(document.getElementById('adminFeeDep3').value) / 100;
             
             const years = 20;
             const monthsPerYear = 12;
@@ -269,26 +263,46 @@
             // Initialize arrays for chart
             let fees1 = [];
             let fees2 = [];
-            let fees3 = [];
             
             let balance1 = initialBalance;
             let balance2 = initialBalance;
-            let balance3 = initialBalance;
+
+            let totalFees1 = 0;
+            let totalFees2 = 0;
+
+            let crossingYear = null; // לשמור את שנת המפגש
             
             for (let year = 1; year <= years; year++) {
                 let annualFee1 = balance1 * adminFeeAcc1 + monthlyDeposit * monthsPerYear * adminFeeDep1;
                 let annualFee2 = balance2 * adminFeeAcc2 + monthlyDeposit * monthsPerYear * adminFeeDep2;
-                let annualFee3 = balance3 * adminFeeAcc3 + monthlyDeposit * monthsPerYear * adminFeeDep3;
                 
                 fees1.push(annualFee1);
                 fees2.push(annualFee2);
-                fees3.push(annualFee3);
                 
+                totalFees1 += annualFee1;
+                totalFees2 += annualFee2;
+
                 balance1 = (balance1 + monthlyDeposit * monthsPerYear) * (1 - adminFeeAcc1);
                 balance2 = (balance2 + monthlyDeposit * monthsPerYear) * (1 - adminFeeAcc2);
-                balance3 = (balance3 + monthlyDeposit * monthsPerYear) * (1 - adminFeeAcc3);
+
+                // חישוב נקודת מפגש
+                if (year > 1 && crossingYear === null) {
+                    if ((fees1[year - 2] > fees2[year - 2] && fees1[year - 1] < fees2[year - 1]) || (fees1[year - 2] < fees2[year - 2] && fees1[year - 1] > fees2[year - 1])) {
+                        crossingYear = year;
+                    }
+                }
             }
-            
+
+            // חישוב סך התשלום בתנאים אופטימליים
+            let optimalTotalFees;
+            if (crossingYear) {
+                let feesBeforeCrossing = fees2.slice(0, crossingYear).reduce((a, b) => a + b, 0);
+                let feesAfterCrossing = fees1.slice(crossingYear).reduce((a, b) => a + b, 0);
+                optimalTotalFees = feesBeforeCrossing + feesAfterCrossing;
+            } else {
+                optimalTotalFees = Math.min(totalFees1, totalFees2);
+            }
+
             // Create the chart
             const ctx = document.getElementById('feeChart').getContext('2d');
             if (myChart) {
@@ -312,13 +326,6 @@
                             borderColor: 'rgba(54, 162, 235, 1)',
                             backgroundColor: 'rgba(54, 162, 235, 0.2)',
                             fill: true
-                        },
-                        {
-                            label: document.getElementById('scenario3').textContent,
-                            data: fees3,
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                            fill: true
                         }
                     ]
                 },
@@ -341,8 +348,41 @@
                 }
             });
 
+            // Display total costs and recommendations
+            const totalCostsDiv = document.getElementById('totalCosts');
+            totalCostsDiv.innerHTML = `
+                <p><strong>סך ההוצאה לאורך 20 שנים:</strong></p>
+		<p>הצעה 1: ${Math.round(totalFees1)} ₪</p>
+		<p>הצעה 2: ${Math.round(totalFees2)} ₪</p>
+		<p><strong>סך ההוצאה האופטימלית:</strong> ${Math.round(optimalTotalFees)} ₪</p>
+                <p><strong>המלצה:</strong></p>
+                ${getRecommendation(totalFees1, totalFees2, optimalTotalFees, crossingYear)}
+                <p>להתייעצות נוספת על השימוש במחשבון, לחצו על הקישור לוואטסאפ שנמצא בצד.</p>
+            `;
+
             // עדכון שמות הצירים בהתאם לשפה הנבחרת לאחר יצירת הגרף
             setLanguage(document.body.style.direction === 'rtl' ? 'he' : 'en');
+        }
+
+        function getRecommendation(fees1, fees2, optimalFees, crossingYear) {
+            let recommendationText = '';
+
+            if (crossingYear) {
+                recommendationText += `
+                    <p>המסלול האופטימלי הוא להתחיל בהצעה 2 ולעבור להצעה 1 בעוד ${crossingYear} שנים.</p>
+<p>סך התשלום במקרה זה יהיה ${Math.round(optimalFees)} ₪.</p>
+		  <p>בהשוואה להצעה 1 בלבד, יש חיסכון של ${Math.round(fees1 - optimalFees)} ₪.</p>
+		  <p>בהשוואה להצעה 2 בלבד, יש חיסכון של ${Math.round(fees2 - optimalFees)} ₪.</p>
+                `;
+            } else {
+                let bestScenario = fees1 < fees2 ? 'הצעה 1' : 'הצעה 2';
+                recommendationText += `
+                    <p>המסלול שהכי טוב באופן עקבי הוא ${bestScenario}, עם סך תשלום של ${Math.round(Math.min(fees1, fees2))} ₪.</p>
+
+                `;
+            }
+
+            return recommendationText;
         }
 
         // Initialize with default language (Hebrew)
